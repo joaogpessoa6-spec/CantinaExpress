@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cantina Express — Totem</title>
+  <meta name="description" content="Totem de autoatendimento da Cantina Express SENAI">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- TELA 1: BOAS-VINDAS -->
+  <div class="screen active" id="screen-welcome" onclick="showScreen('catalog')">
+    <div class="welcome-glow"></div>
+    <div style="text-align:center;z-index:1">
+      <div class="welcome-logo">🍔</div>
+      <h1 class="welcome-title">Cantina Express</h1>
+      <p class="welcome-sub">SENAI • Autoatendimento</p>
+      <div class="welcome-tap">
+        <span>👆</span> Toque para começar
+      </div>
+    </div>
+    <div class="welcome-time" id="welcome-clock"></div>
+  </div>
+
+  <!-- TELA 2: CARDÁPIO -->
+  <div class="screen" id="screen-catalog">
+    <div class="app-header">
+      <div class="header-logo">
+        <span>🍔</span>
+        <span>Cantina Express</span>
+      </div>
+      <button class="cart-btn" onclick="showScreen('cart')" id="cart-header-btn" style="display:none">
+        🛒 Ver Carrinho
+        <span class="cart-badge" id="cart-badge">0</span>
+      </button>
+    </div>
+    <div class="categories" id="categories-bar">
+      <button class="cat-btn active" onclick="filterCat(this,'todos')">🍽️ Todos</button>
+      <button class="cat-btn" onclick="filterCat(this,'lanches')">🍔 Lanches</button>
+      <button class="cat-btn" onclick="filterCat(this,'salgados')">🥐 Salgados</button>
+      <button class="cat-btn" onclick="filterCat(this,'bebidas')">🥤 Bebidas</button>
+      <button class="cat-btn" onclick="filterCat(this,'doces')">🍰 Doces</button>
+    </div>
+    <div class="catalog-body">
+      <div class="products-grid" id="products-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Carregando produtos...</div>
+      </div>
+    </div>
+    <button class="floating-cart" id="floating-cart" onclick="showScreen('cart')">
+      🛒 <span id="floating-label">Ver Carrinho (0)</span>
+      <span style="margin-left:8px;font-size:20px;font-weight:900" id="floating-total">R$ 0,00</span>
+    </button>
+  </div>
+
+  <!-- TELA 3: CARRINHO -->
+  <div class="screen" id="screen-cart">
+    <div class="totem-header">
+      <button class="back-btn" onclick="showScreen('catalog')">← Cardápio</button>
+      <span class="screen-title">🛒 Meu Pedido</span>
+      <div style="width:120px"></div>
+    </div>
+    <div class="cart-body" id="cart-body"></div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total do pedido</span>
+        <span id="cart-total-value">R$ 0,00</span>
+      </div>
+      <div class="cart-actions">
+        <button class="btn-back" onclick="showScreen('catalog')">+ Adicionar</button>
+        <button class="btn-primary" id="btn-checkout" onclick="showScreen('payment-method')">Ir para pagamento →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 4: MÉTODO DE PAGAMENTO -->
+  <div class="screen" id="screen-payment-method">
+    <div class="totem-header">
+      <button class="back-btn" onclick="showScreen('cart')">← Carrinho</button>
+      <span class="screen-title">💳 Pagamento</span>
+      <div style="width:120px"></div>
+    </div>
+    <div class="payment-method-body">
+      <h2 class="section-title">Como deseja pagar?</h2>
+      <p class="section-sub">Escolha o método de pagamento</p>
+      <div class="summary-box">
+        <span class="summary-label">Total a pagar</span>
+        <span class="summary-value" id="pm-total">R$ 0,00</span>
+      </div>
+      <div class="payment-options">
+        <div class="payment-opt pix" onclick="startPayment('pix')">
+          <div class="opt-icon">📱</div>
+          <div class="opt-name">PIX</div>
+          <div class="opt-desc">Aprovação imediata</div>
+        </div>
+        <div class="payment-opt credito" onclick="startPayment('credito')">
+          <div class="opt-icon">💳</div>
+          <div class="opt-name">Crédito</div>
+          <div class="opt-desc">À vista ou parcelado</div>
+        </div>
+        <div class="payment-opt debito" onclick="startPayment('debito')">
+          <div class="opt-icon">🏦</div>
+          <div class="opt-name">Débito</div>
+          <div class="opt-desc">Débito automático</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 5: PIX -->
+  <div class="screen" id="screen-pix">
+    <div class="totem-header">
+      <button class="back-btn" onclick="showScreen('payment-method')">← Voltar</button>
+      <span class="screen-title">📱 Pagar com PIX</span>
+      <div style="width:120px"></div>
+    </div>
+    <div class="pix-body">
+      <p style="color:var(--text-muted);font-size:15px;text-align:center">Escaneie o QR Code com o app do seu banco</p>
+      <div class="pix-qr-wrapper">
+        <div id="pix-qrcode"></div>
+      </div>
+      <div class="pix-info">
+        <p style="color:var(--text-muted);font-size:13px">Chave PIX</p>
+        <p class="pix-key">cantina@senai.br</p>
+        <p style="color:var(--text-muted);font-size:13px;margin-top:4px">Valor: <strong id="pix-valor" style="color:#fff"></strong></p>
+        <button class="pix-copy-btn" id="pix-copy-btn" onclick="copyPixCode()">📋 Copiar código PIX</button>
+      </div>
+      <div>
+        <p style="color:var(--text-muted);font-size:14px;text-align:center;margin-bottom:4px">Expira em</p>
+        <div class="pix-timer" id="pix-timer">05:00</div>
+      </div>
+      <div class="pix-status" id="pix-status">
+        <div class="pix-dot"></div>
+        Aguardando pagamento...
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 6: CARTÃO -->
+  <div class="screen" id="screen-card">
+    <div class="totem-header">
+      <button class="back-btn" onclick="showScreen('payment-method')">← Voltar</button>
+      <span class="screen-title" id="card-screen-title">💳 Pagamento com Cartão</span>
+      <div style="width:120px"></div>
+    </div>
+    <div class="card-body">
+      <div class="card-visual">
+        <div class="card-inner" id="card-inner">
+          <div class="card-front">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="card-chip"></div>
+              <span id="card-brand-display" style="font-size:14px;font-weight:800;color:rgba(255,255,255,0.8)">●●●●</span>
+            </div>
+            <div class="card-number-display" id="card-num-display">•••• •••• •••• ••••</div>
+            <div class="card-details-row">
+              <div>
+                <div class="card-label">Nome</div>
+                <div class="card-value" id="card-name-display">SEU NOME</div>
+              </div>
+              <div>
+                <div class="card-label">Validade</div>
+                <div class="card-value" id="card-exp-display">MM/AA</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-back">
+            <div class="card-stripe"></div>
+            <div style="padding:0 16px">
+              <div class="card-label" style="margin-bottom:6px">CVV</div>
+              <div class="card-cvv-box" id="card-cvv-display">•••</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-type-tabs">
+        <button class="type-tab active" id="tab-credito" onclick="setCardType('credito')">Crédito</button>
+        <button class="type-tab" id="tab-debito" onclick="setCardType('debito')">Débito</button>
+      </div>
+
+      <div class="card-form">
+        <div class="form-group">
+          <label>Número do Cartão</label>
+          <input type="tel" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" oninput="fmtCard(this)" onfocus="flipCard(false)">
+        </div>
+        <div class="form-group">
+          <label>Nome no Cartão</label>
+          <input type="text" id="card-name" placeholder="NOME COMPLETO" oninput="updateCardDisplay()" onfocus="flipCard(false)" style="text-transform:uppercase">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Validade</label>
+            <input type="tel" id="card-expiry" placeholder="MM/AA" maxlength="5" oninput="fmtExpiry(this)" onfocus="flipCard(false)">
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="tel" id="card-cvv" placeholder="•••" maxlength="4" oninput="updateCardDisplay()" onfocus="flipCard(true)" onblur="flipCard(false)">
+          </div>
+        </div>
+        <button class="btn-primary" id="btn-pay-card" onclick="submitCard()" style="margin-top:8px">
+          🔒 Pagar <span id="card-pay-total">R$ 0,00</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 7: PROCESSANDO -->
+  <div class="screen" id="screen-processing">
+    <div class="processing-icon">⚙️</div>
+    <h2 class="processing-title" id="proc-title">Processando pagamento...</h2>
+    <p class="processing-sub" id="proc-sub">Por favor, aguarde</p>
+  </div>
+
+  <!-- TELA 8: COMPROVANTE -->
+  <div class="screen" id="screen-receipt">
+    <div class="totem-header">
+      <div style="width:100px"></div>
+      <span class="screen-title">🧾 Comprovante</span>
+      <div style="width:100px"></div>
+    </div>
+    <div class="receipt-body">
+      <div class="receipt-success">
+        <div class="receipt-check">✅</div>
+        <h2>Pagamento Confirmado!</h2>
+        <p>Seu pedido foi enviado para a cozinha</p>
+      </div>
+      <div class="receipt-paper" id="receipt-paper">
+        <!-- Gerado dinamicamente -->
+      </div>
+      <div class="receipt-actions">
+        <button class="btn-pdf" onclick="downloadPDF()">⬇️ Baixar Comprovante PDF</button>
+        <button class="btn-new" onclick="resetApp()">🔄 Novo Pedido</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
